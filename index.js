@@ -20,10 +20,10 @@ const client = new Client({
 });
 
 // ---- KONFIGURACJA ----
-const panelChannelId = "ID_PANEL_CHANNEL";     // Kanał z przyciskiem "Podaj podanie"
-const reviewChannelId = "ID_REVIEW_CHANNEL";   // Kanał administracyjny z podaniami
-const finalRoleId = "ID_ROLE_ACCEPTED";        // Rola po zaakceptowaniu
-const previousRoleId = "ID_PREVIOUS_ROLE";     // Rola do usunięcia po akceptacji
+const panelChannelId = "1454159316990033930";     // Kanał z przyciskiem "Podaj podanie"
+const reviewChannelId = "1454163377193746544";   // Kanał administracyjny z podaniami
+const finalRoleId = "1454158477831438520";        // Rola po zaakceptowaniu
+const previousRoleId = "1449744737807630478";     // Rola do usunięcia po akceptacji
 
 // ---- READY ----
 client.once('ready', async () => {
