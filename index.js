@@ -20,8 +20,8 @@ const client = new Client({
 });
 
 // ---- KONFIGURACJA ----
-const panelChannelId = "1454159316990033930";     // Kanał gdzie użytkownicy klikają przycisk (tylko start)
-const reviewChannelId = "1454163377193746544";   // Kanał administracyjny z podaniami
+const panelChannelId = "1454159316990033930";     // Kanał startowy
+const reviewChannelId = "1454163377193746544";    // Kanał administracyjny z podaniami
 const finalRoleId = "1454158477831438520";        // Rola po zaakceptowaniu
 const previousRoleId = "1449744737807630478";     // Rola do usunięcia po akceptacji
 
@@ -69,7 +69,6 @@ client.on(Events.InteractionCreate, async interaction => {
 
   // ---- BUTTON: Open Modal (DM) ----
   if (interaction.isButton() && interaction.customId === 'dm_modal') {
-    // TYLKO OTWIERAMY MODAL, NIC NIE WYSYŁAMY DO KANAŁU
     const modal = new ModalBuilder()
       .setCustomId('application_modal')
       .setTitle('Podanie do Królestwa Polskiego');
