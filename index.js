@@ -47,7 +47,7 @@ client.once('ready', async () => {
 // ---- INTERACTIONS ----
 client.on(Events.InteractionCreate, async interaction => {
 
-  // ---- BUTTON: Apply Now ----
+  // ---- BUTTON: Apply Now (Kanał) ----
   if (interaction.isButton() && interaction.customId === 'apply_btn') {
     const dmButton = new ButtonBuilder()
       .setCustomId('dm_modal')
@@ -56,7 +56,6 @@ client.on(Events.InteractionCreate, async interaction => {
 
     const dmRow = new ActionRowBuilder().addComponents(dmButton);
 
-    // Wyślij DM
     try {
       await interaction.user.send({
         content: 'Kliknij przycisk, aby wypełnić podanie:',
@@ -68,12 +67,14 @@ client.on(Events.InteractionCreate, async interaction => {
     }
   }
 
-  // ---- DM BUTTON: Open Modal ----
+  // ---- BUTTON: Open Modal (DM) ----
   if (interaction.isButton() && interaction.customId === 'dm_modal') {
+    // TYLKO OTWIERAMY MODAL, NIC NIE WYSYŁAMY DO KANAŁU
     const modal = new ModalBuilder()
       .setCustomId('application_modal')
       .setTitle('Podanie do Królestwa Polskiego');
 
+    // Tekstowe pytania po polsku
     const mcNick = new TextInputBuilder()
       .setCustomId('mc_nick')
       .setLabel('Jaki jest Twój nick Minecraft?')
