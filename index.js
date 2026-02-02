@@ -20,7 +20,7 @@ const client = new Client({
 });
 
 // ---- KONFIGURACJA ----
-const panelChannelId = "1454159316990033930";     // Kanał z przyciskiem "Podaj podanie"
+const panelChannelId = "1454159316990033930";     // Kanał gdzie użytkownicy klikają przycisk (tylko start)
 const reviewChannelId = "1454163377193746544";   // Kanał administracyjny z podaniami
 const finalRoleId = "1454158477831438520";        // Rola po zaakceptowaniu
 const previousRoleId = "1449744737807630478";     // Rola do usunięcia po akceptacji
@@ -39,7 +39,7 @@ client.once('ready', async () => {
   const row = new ActionRowBuilder().addComponents(button);
 
   channel.send({
-    content: 'Kliknij przycisk, aby złożyć podanie!',
+    content: 'Kliknij przycisk, aby otrzymać panel w DM!',
     components: [row]
   });
 });
@@ -49,11 +49,31 @@ client.on(Events.InteractionCreate, async interaction => {
 
   // ---- BUTTON: Apply Now ----
   if (interaction.isButton() && interaction.customId === 'apply_btn') {
+    const dmButton = new ButtonBuilder()
+      .setCustomId('dm_modal')
+      .setLabel('Otwórz panel w DM')
+      .setStyle(ButtonStyle.Primary);
+
+    const dmRow = new ActionRowBuilder().addComponents(dmButton);
+
+    // Wyślij DM
+    try {
+      await interaction.user.send({
+        content: 'Kliknij przycisk, aby wypełnić podanie:',
+        components: [dmRow]
+      });
+      await interaction.reply({ content: '✅ Sprawdź swoje DM!', ephemeral: true });
+    } catch(err) {
+      await interaction.reply({ content: '❌ Nie mogę wysłać Ci DM. Włącz prywatne wiadomości od członków serwera.', ephemeral: true });
+    }
+  }
+
+  // ---- DM BUTTON: Open Modal ----
+  if (interaction.isButton() && interaction.customId === 'dm_modal') {
     const modal = new ModalBuilder()
       .setCustomId('application_modal')
       .setTitle('Podanie do Królestwa Polskiego');
 
-    // Pytania po polsku
     const mcNick = new TextInputBuilder()
       .setCustomId('mc_nick')
       .setLabel('Jaki jest Twój nick Minecraft?')
@@ -162,9 +182,7 @@ client.on(Events.InteractionCreate, async interaction => {
 
     if (action === "accept") {
       try {
-        // Dodaj rolę finalną
         await member.roles.add(finalRoleId);
-        // Usuń poprzednią rolę
         if (previousRoleId && member.roles.cache.has(previousRoleId)) {
           await member.roles.remove(previousRoleId);
         }
