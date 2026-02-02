@@ -1,6 +1,5 @@
 require('dotenv').config();
-
-const { Client, GatewayIntentBits, ActionRowBuilder, ButtonBuilder, ButtonStyle, Events } = require('discord.js');
+const { Client, GatewayIntentBits, ActionRowBuilder, ButtonBuilder, ButtonStyle, Events, Partials } = require('discord.js');
 
 const client = new Client({
   intents: [
@@ -9,16 +8,16 @@ const client = new Client({
     GatewayIntentBits.DirectMessages,
     GatewayIntentBits.MessageContent
   ],
-  partials: ['CHANNEL']
+  partials: [Partials.Channel] // POTRZEBNE DO DM
 });
 
-// ---- KONFIGURACJA ----
+// ---------- KONFIG ----------
 const panelChannelId = "1454159316990033930";
 const reviewChannelId = "1454163377193746544";
 const finalRoleId = "1454158477831438520";
 const previousRoleId = "1449744737807630478";
 
-// ---- PYTANIA ----
+// ---------- PYTANIA ----------
 const questions = [
   "Jaki jest Twój nick Minecraft?",
   "Ile masz lat?",
@@ -29,27 +28,27 @@ const questions = [
   "Kim chciałbyś zostać?"
 ];
 
+// zapis aktywnych podań
 const applications = new Map();
 
+// ---------- BOT ONLINE ----------
 client.once('ready', async () => {
   console.log(`Bot online jako ${client.user.tag}`);
 
   const channel = await client.channels.fetch(panelChannelId);
 
-  const button = new ButtonBuilder()
+  const btn = new ButtonBuilder()
     .setCustomId('start_apply')
     .setLabel('Złóż podanie')
     .setStyle(ButtonStyle.Primary);
 
-  const row = new ActionRowBuilder().addComponents(button);
-
   channel.send({
     content: 'Kliknij, aby rozpocząć podanie w DM!',
-    components: [row]
+    components: [new ActionRowBuilder().addComponents(btn)]
   });
 });
 
-// ---- PRZYCISK START ----
+// ---------- START PODANIA ----------
 client.on(Events.InteractionCreate, async interaction => {
   if (!interaction.isButton()) return;
 
@@ -57,62 +56,62 @@ client.on(Events.InteractionCreate, async interaction => {
     applications.set(interaction.user.id, { step: 0, answers: [] });
 
     try {
-      await interaction.user.send("📋 Rozpoczynamy podanie.\n" + questions[0]);
+      await interaction.user.send("📋 **Podanie rozpoczęte**\n" + questions[0]);
       await interaction.reply({ content: "📨 Sprawdź DM!", ephemeral: true });
     } catch {
-      await interaction.reply({ content: "❌ Włącz DM od członków serwera.", ephemeral: true });
+      await interaction.reply({ content: "❌ Masz wyłączone DM.", ephemeral: true });
     }
   }
 });
 
-// ---- ODPOWIEDZI W DM ----
+// ---------- WIADOMOŚCI W DM ----------
 client.on('messageCreate', async message => {
   if (message.author.bot) return;
-  if (!message.guild) { // TYLKO DM
-    const app = applications.get(message.author.id);
-    if (!app) return;
+  if (message.guild) return; // tylko DM
 
-    app.answers.push(message.content);
-    app.step++;
+  const app = applications.get(message.author.id);
+  if (!app) return;
 
-    if (app.step < questions.length) {
-      await message.channel.send(questions[app.step]);
-    } else {
-      // KONIEC PYTAŃ
-      const reviewChannel = await client.channels.fetch(reviewChannelId);
+  // ZAPISZ ODPOWIEDŹ
+  app.answers.push(message.content);
+  app.step++;
 
-      const acceptBtn = new ButtonBuilder()
-        .setCustomId(`accept_${message.author.id}`)
-        .setLabel('Accept')
-        .setStyle(ButtonStyle.Success);
+  // JEŚLI SĄ JESZCZE PYTANIA
+  if (app.step < questions.length) {
+    await message.channel.send(questions[app.step]);
+  } else {
+    // KONIEC — WYŚLIJ PODANIE
+    const reviewChannel = await client.channels.fetch(reviewChannelId);
 
-      const declineBtn = new ButtonBuilder()
-        .setCustomId(`decline_${message.author.id}`)
-        .setLabel('Decline')
-        .setStyle(ButtonStyle.Danger);
+    const acceptBtn = new ButtonBuilder()
+      .setCustomId(`accept_${message.author.id}`)
+      .setLabel('Accept')
+      .setStyle(ButtonStyle.Success);
 
-      const row = new ActionRowBuilder().addComponents(acceptBtn, declineBtn);
+    const declineBtn = new ButtonBuilder()
+      .setCustomId(`decline_${message.author.id}`)
+      .setLabel('Decline')
+      .setStyle(ButtonStyle.Danger);
 
-      await reviewChannel.send({
-        content:
-          `**Nowe podanie od <@${message.author.id}>**\n\n` +
-          `**Nick MC:** ${app.answers[0]}\n` +
-          `**Wiek:** ${app.answers[1]}\n` +
-          `**Umiejętności:** ${app.answers[2]}\n` +
-          `**Poprzednie nacje:** ${app.answers[3]}\n` +
-          `**Dlaczego chce dołączyć:** ${app.answers[4]}\n` +
-          `**Jak pomoże Królestwu:** ${app.answers[5]}\n` +
-          `**Kim chce zostać:** ${app.answers[6]}`,
-        components: [row]
-      });
+    await reviewChannel.send({
+      content:
+        `**Nowe podanie od <@${message.author.id}>**\n\n` +
+        `**Nick MC:** ${app.answers[0]}\n` +
+        `**Wiek:** ${app.answers[1]}\n` +
+        `**Umiejętności:** ${app.answers[2]}\n` +
+        `**Poprzednie nacje:** ${app.answers[3]}\n` +
+        `**Dlaczego chce dołączyć:** ${app.answers[4]}\n` +
+        `**Jak pomoże Królestwu:** ${app.answers[5]}\n` +
+        `**Kim chce zostać:** ${app.answers[6]}`,
+      components: [new ActionRowBuilder().addComponents(acceptBtn, declineBtn)]
+    });
 
-      await message.channel.send("✅ Podanie wysłane!");
-      applications.delete(message.author.id);
-    }
+    await message.channel.send("✅ Podanie wysłane!");
+    applications.delete(message.author.id);
   }
 });
 
-// ---- ACCEPT / DECLINE ----
+// ---------- ACCEPT / DECLINE ----------
 client.on(Events.InteractionCreate, async interaction => {
   if (!interaction.isButton()) return;
 
