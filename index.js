@@ -1,8 +1,5 @@
 require('dotenv').config();
 
-// 🔹 SPRAWDZENIE TOKENA 🔹
-console.log("TOKEN CHECK:", process.env.TOKEN ? "JEST" : "BRAK");
-
 const { 
   Client, 
   GatewayIntentBits, 
@@ -69,6 +66,7 @@ client.on(Events.InteractionCreate, async interaction => {
 
   // ---- BUTTON: Open Modal (DM) ----
   if (interaction.isButton() && interaction.customId === 'dm_modal') {
+    // TYLKO OTWIERAMY MODAL W DM, nic do kanału
     const modal = new ModalBuilder()
       .setCustomId('application_modal')
       .setTitle('Podanie do Królestwa Polskiego');
@@ -126,7 +124,7 @@ client.on(Events.InteractionCreate, async interaction => {
       new ActionRowBuilder().addComponents(roleGoal)
     );
 
-    await interaction.showModal(modal);
+    await interaction.showModal(modal); // WAŻNE: tylko modal w DM
   }
 
   // ---- PO SUBMIT MODAL ----
